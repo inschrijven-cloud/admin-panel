@@ -2,6 +2,7 @@ package services
 
 import javax.inject.{Inject, Singleton}
 
+import be.thomastoye.speelsysteem.ConfigurationException
 import models.DbName
 import play.api.Configuration
 import com.ibm.couchdb._
@@ -22,15 +23,23 @@ trait TenantsService {
   def dbDetails(db: DbName): Future[Res.DbInfo]
 }
 
+case class CloudantConfig @Inject() (configuration: Configuration) {
+  lazy val host = configuration.getString("cloudant.host").getOrElse(throw new ConfigurationException("cloudant.host"))
+  lazy val port = configuration.getInt("cloudant.port").getOrElse(throw new ConfigurationException("cloudant.port"))
+  lazy val user = configuration.getString("cloudant.user").getOrElse(throw new ConfigurationException("cloudant.user"))
+  lazy val pass = configuration.getString("cloudant.pass").getOrElse(throw new ConfigurationException("cloudant.pass"))
+}
+
 @Singleton
-class CloudantTenantsService @Inject() (wsClientProvider: WSClientProvider, configuration: Configuration)
+class CloudantTenantsService @Inject() (wsClientProvider: WSClientProvider, cloudantConfig: CloudantConfig)
   extends TenantsService
 {
   val client = CouchDb(
-    configuration.getString("cloudant.host").get,
-    configuration.getInt("cloudant.port").get,
-    https = true, configuration.getString("cloudant.user").get,
-    configuration.getString("cloudant.pass").get
+    cloudantConfig.host,
+    cloudantConfig.port,
+    https = true,
+    cloudantConfig.user,
+    cloudantConfig.pass
   )
 
   override def allDbs = {
