@@ -14,6 +14,8 @@ libraryDependencies ++= Seq(
   "org.webjars" %% "webjars-play" % "2.5.0",
   "org.webjars" % "bootstrap" % "3.3.6",
 
+  "org.mockito" % "mockito-core" % "1.10.19",
+
   "org.scalatestplus.play" %% "scalatestplus-play" % "1.5.1" % Test
 )
 
