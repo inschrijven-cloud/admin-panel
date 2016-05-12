@@ -1,6 +1,9 @@
 GET     /                           controllers.HomeController.index
 
 GET     /tenants                    controllers.TenantsController.list
+GET     /tenants/:name              controllers.TenantsController.details(name)
+
+GET     /databases                  controllers.DatabaseController.list
 
 GET     /ping                       controllers.StatusController.ping
 

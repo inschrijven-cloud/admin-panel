@@ -12,8 +12,12 @@ import scala.concurrent.Future
 @Singleton
 class TenantsController @Inject() (tenantsService: TenantsService) extends Controller {
   def list = Action.async {
-    tenantsService.allDbs.map(_.mkString(", ")) map { dbs =>
-      Ok(views.html.index(dbs))
+    tenantsService.all map { tenants =>
+      Ok(views.html.tenants.list(tenants))
     }
   }
+
+  def details(name: String) = TODO
+
+  def createNew = TODO
 }

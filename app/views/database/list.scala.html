@@ -1,0 +1,14 @@
+@(dbs: Seq[models.DbName])
+
+@main("All databases") {
+    <table class="table table-striped">
+        <thead>
+            <tr><th>Name</th></tr>
+        </thead>
+        <tbody>
+            @for(db <- dbs) {
+                <tr><td>@db.value</td></tr>
+            }
+        </tbody>
+    </table>
+}

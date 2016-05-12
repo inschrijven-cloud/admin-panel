@@ -2,13 +2,11 @@ package services
 
 import javax.inject.{Inject, Singleton}
 
-import be.thomastoye.speelsysteem.ConfigurationException
-import models.DbName
-import play.api.Configuration
+import be.thomastoye.speelsysteem.models.Tenant
+import com.ibm.couchdb.Res.Ok
 import com.ibm.couchdb._
-import play.api.libs.ws.WSAuthScheme
-import play.api.libs.ws.ahc.WSClientProvider
 import play.api.libs.concurrent.Execution.Implicits._
+import services.TenantsService.TenantInfo
 import util.TaskExtensionOps
 
 import scala.concurrent.ExecutionContext.Implicits
@@ -18,39 +16,28 @@ import scala.concurrent.{Future, Promise}
 import scalaz.concurrent.Task
 
 trait TenantsService {
-  def allDbs: Future[Seq[DbName]]
-  def createDb(db: DbName): Future[Res.Ok]
-  def dbDetails(db: DbName): Future[Res.DbInfo]
+  def all: Future[Seq[Tenant]]
+  def create(tenant: Tenant): Future[Res.Ok]
 }
 
-case class CloudantConfig @Inject() (configuration: Configuration) {
-  lazy val host = configuration.getString("cloudant.host").getOrElse(throw new ConfigurationException("cloudant.host"))
-  lazy val port = configuration.getInt("cloudant.port").getOrElse(throw new ConfigurationException("cloudant.port"))
-  lazy val user = configuration.getString("cloudant.user").getOrElse(throw new ConfigurationException("cloudant.user"))
-  lazy val pass = configuration.getString("cloudant.pass").getOrElse(throw new ConfigurationException("cloudant.pass"))
+object TenantsService {
+  case class TenantInfo(tenant: Tenant, databases: Seq[String])
 }
 
 @Singleton
-class CloudantTenantsService @Inject() (wsClientProvider: WSClientProvider, cloudantConfig: CloudantConfig)
-  extends TenantsService
+class CloudantTenantsService @Inject() (databaseService: DatabaseService) extends TenantsService
 {
-  val client = CouchDb(
-    cloudantConfig.host,
-    cloudantConfig.port,
-    https = true,
-    cloudantConfig.user,
-    cloudantConfig.pass
-  )
-
-  override def allDbs = {
-    new TaskExtensionOps(client.dbs.getAll).runFuture().map(_.map(DbName.create(_).get))
+  override def all = {
+    databaseService.all map { dbs =>
+      dbs
+        .map(_.value)
+        .filter(name => { name.startsWith("tenant-data-") || name.startsWith("tenant-meta-") })
+        .map(_.drop("tenant-xxxx-".length))
+        .map(_.split('.').head)
+        .distinct
+        .map(Tenant.apply)
+    }
   }
 
-  override def createDb(db: DbName) = {
-    new TaskExtensionOps(client.dbs.create(db.value)).runFuture()
-  }
-
-  override def dbDetails(db: DbName) = {
-    new TaskExtensionOps(client.dbs.get(db.value)).runFuture()
-  }
+  override def create(tenant: Tenant): Future[Ok] = ???
 }
