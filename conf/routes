@@ -1,6 +1,8 @@
 GET     /                           controllers.HomeController.index
 
 GET     /tenants                    controllers.TenantsController.list
+GET     /tenants/new                controllers.TenantsController.createNew
+POST    /tenants/new                controllers.TenantsController.createNewPost
 GET     /tenants/:name              controllers.TenantsController.details(name)
 
 GET     /databases                  controllers.DatabaseController.list

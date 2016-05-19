@@ -1,0 +1,10 @@
+@(createTenantForm: Form[be.thomastoye.speelsysteem.models.Tenant])(implicit messages: Messages)
+
+@implicitFieldConstructor = @{ b3.horizontal.fieldConstructor("col-md-2", "col-md-10") }
+
+@main(s"Create a new tenant") {
+    @b3.form(routes.TenantsController.createNewPost) {
+        @b3.text( createTenantForm("tenantNormalizedName"), '_label -> "Tenant normalized name", 'placeholder -> "Normalized name" )
+        @b3.submit('class -> "btn btn-default"){ Create }
+    }
+}

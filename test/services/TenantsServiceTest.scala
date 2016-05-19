@@ -30,8 +30,8 @@ class TenantsServiceTest extends PlaySpec with Results with MockitoSugar with Sc
       val tenantsService = new CloudantTenantsService(databaseService)
       whenReady(tenantsService.all) { tenants =>
         tenants must have size 2
-        tenants must contain(Tenant("snth"))
-        tenants must contain(Tenant("aoeu"))
+        tenants must contain(Tenant.create("snth").get)
+        tenants must contain(Tenant.create("aoeu").get)
       }
 
     }

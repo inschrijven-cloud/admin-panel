@@ -5,6 +5,7 @@ import javax.inject.{Inject, Singleton}
 import be.thomastoye.speelsysteem.models.Tenant
 import com.ibm.couchdb.Res.Ok
 import com.ibm.couchdb._
+import models.DbName
 import play.api.libs.concurrent.Execution.Implicits._
 import services.TenantsService.TenantInfo
 import util.TaskExtensionOps
@@ -31,13 +32,19 @@ class CloudantTenantsService @Inject() (databaseService: DatabaseService) extend
     databaseService.all map { dbs =>
       dbs
         .map(_.value)
-        .filter(name => { name.startsWith("tenant-data-") || name.startsWith("tenant-meta-") })
+        .filter(name => {
+          name.startsWith("tenant-data-") || name.startsWith("tenant-meta-")
+        })
         .map(_.drop("tenant-xxxx-".length))
         .map(_.split('.').head)
         .distinct
-        .map(Tenant.apply)
+        .flatMap(Tenant.create)
     }
   }
 
-  override def create(tenant: Tenant): Future[Ok] = ???
+  override def create(tenant: Tenant): Future[Ok] = {
+    databaseService.create(tenant.dataDatabaseName) flatMap { ok =>
+      databaseService.create(tenant.metadataDatabaseName)
+    }
+  }
 }
