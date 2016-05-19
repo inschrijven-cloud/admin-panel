@@ -1,4 +1,4 @@
-name := """admin"""
+name := """admin-panel"""
 
 version := "1.0-SNAPSHOT"
 
