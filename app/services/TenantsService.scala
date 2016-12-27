@@ -19,6 +19,8 @@ import scalaz.concurrent.Task
 trait TenantsService {
   def all: Future[Seq[Tenant]]
   def create(tenant: Tenant): Future[Res.Ok]
+  def details(tenant: Tenant): Future[Unit] // does nothing yet
+  def initializeDatabase(tenant: Tenant): Future[Seq[Res.DocOk]]
 }
 
 object TenantsService {
@@ -46,5 +48,11 @@ class CloudantTenantsService @Inject() (databaseService: DatabaseService) extend
     databaseService.create(tenant.dataDatabaseName) flatMap { ok =>
       databaseService.create(tenant.metadataDatabaseName)
     }
+  }
+
+  override def details(tenant: Tenant): Future[Unit] = Future.successful(())
+
+  override def initializeDatabase(tenant: Tenant): Future[Seq[Res.DocOk]] = {
+    databaseService.createViews(tenant.dataDatabaseName)
   }
 }

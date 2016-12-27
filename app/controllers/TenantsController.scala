@@ -4,6 +4,7 @@ import javax.inject._
 
 import play.api.Logger
 import be.thomastoye.speelsysteem.models.Tenant
+import com.ibm.couchdb.CouchException
 import services.TenantsService
 import play.api._
 import play.api.mvc._
@@ -27,7 +28,7 @@ class TenantsController @Inject()(tenantsService: TenantsService, val messagesAp
   val createTenantForm = Form(
     mapping("tenantNormalizedName" -> nonEmptyText.verifying(tenantNormalizedNameConstraint))
     (Tenant.create(_).get)
-    (tenant => Some(tenant.nomalizedName))
+    (tenant => Some(tenant.normalizedName))
   )
 
   def list = Action.async {
@@ -36,7 +37,15 @@ class TenantsController @Inject()(tenantsService: TenantsService, val messagesAp
     }
   }
 
-  def details(name: String) = TODO
+  def details(name: String) = Action.async {
+    Tenant.create(name).fold(
+      Future.successful(BadRequest(""))
+    )(tenant =>
+      tenantsService.details(tenant) map { details =>
+        Ok(views.html.tenants.details(tenant))
+      }
+    )
+  }
 
   def createNew = Action {
     Ok(views.html.tenants.createnew(createTenantForm))
@@ -50,10 +59,18 @@ class TenantsController @Inject()(tenantsService: TenantsService, val messagesAp
       },
       createTenant => {
         tenantsService.create(createTenant) map { status =>
-          Logger.info(s"Successfully created new tenant with normalized name ${createTenant.nomalizedName}")
+          Logger.info(s"Successfully created new tenant with normalized name ${createTenant.normalizedName}")
           Redirect(routes.TenantsController.list)
         }
       }
     )
+  }
+
+  def initializeDatabase(tenantName: String) = Action.async {
+    Tenant.create(tenantName).fold(Future.successful(BadRequest("Could not parse tenant name"))) { tenant =>
+      tenantsService.initializeDatabase(tenant).map { res =>
+        Ok(views.html.tenants.initializeResult(tenant, res))
+      }
+    }
   }
 }

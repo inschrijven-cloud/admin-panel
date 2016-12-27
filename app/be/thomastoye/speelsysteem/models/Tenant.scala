@@ -4,9 +4,9 @@ import models.DbName
 
 object Tenant {
 
-  private case class TenantImpl(nomalizedName: String) extends Tenant {
-    def dataDatabaseName: DbName = DbName.create(TenantDataDatabasePrefix + nomalizedName).get
-    def metadataDatabaseName: DbName = DbName.create(TenantMetadataDatabasePrefix + nomalizedName).get
+  private case class TenantImpl(normalizedName: String) extends Tenant {
+    def dataDatabaseName: DbName = DbName.create(TenantDataDatabasePrefix + normalizedName).get
+    def metadataDatabaseName: DbName = DbName.create(TenantMetadataDatabasePrefix + normalizedName).get
   }
 
   final val TenantMetadataDatabasePrefix = "tenant-meta-"
@@ -22,7 +22,7 @@ object Tenant {
 }
 
 sealed trait Tenant {
-  val nomalizedName: String
+  val normalizedName: String
 
   def dataDatabaseName: DbName
   def metadataDatabaseName: DbName

@@ -1,0 +1,20 @@
+@(tenant: be.thomastoye.speelsysteem.models.Tenant)
+
+@import b3.inline.fieldConstructor
+
+@main(s"Details for ${tenant.normalizedName}") {
+    <h1>@tenant.normalizedName</h1>
+
+    <h2>Databases</h2>
+
+    <ul>
+        <li>Data database name: <em>@tenant.dataDatabaseName.value</em></li>
+        <li>Metadata database name: <em>@tenant.metadataDatabaseName.value</em></li>
+    </ul>
+
+    <h2>Design documents</h2>
+
+    @b3.form(routes.TenantsController.initializeDatabase(tenant.normalizedName)) {
+        @b3.submit('class -> "btn btn-default"){ Replace or create design docs }
+    }
+}

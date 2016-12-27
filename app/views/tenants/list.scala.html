@@ -7,7 +7,7 @@
         </thead>
         <tbody>
         @for(tenant <- tenants) {
-            <tr><td><a href="@routes.TenantsController.details(tenant.nomalizedName)">@tenant.nomalizedName</a></td></tr>
+            <tr><td><a href="@routes.TenantsController.details(tenant.normalizedName)">@tenant.normalizedName</a></td></tr>
         }
         </tbody>
     </table>
