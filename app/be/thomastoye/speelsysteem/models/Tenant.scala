@@ -5,8 +5,10 @@ import models.DbName
 object Tenant {
 
   private case class TenantImpl(normalizedName: String) extends Tenant {
-    def dataDatabaseName: DbName = DbName.create(TenantDataDatabasePrefix + normalizedName).get
-    def metadataDatabaseName: DbName = DbName.create(TenantMetadataDatabasePrefix + normalizedName).get
+    private val databases = Seq("children", "crew", "days")
+
+    override def dataDatabases: Seq[DbName] = databases.map(name => DbName.create(TenantDataDatabasePrefix + normalizedName + "-" + name).get)
+    override def metadataDatabaseName: DbName = DbName.create(TenantMetadataDatabasePrefix + normalizedName).get
   }
 
   final val TenantMetadataDatabasePrefix = "tenant-meta-"
@@ -24,6 +26,6 @@ object Tenant {
 sealed trait Tenant {
   val normalizedName: String
 
-  def dataDatabaseName: DbName
+  def dataDatabases: Seq[DbName]
   def metadataDatabaseName: DbName
 }

@@ -15,14 +15,16 @@ import play.api.test.Helpers._
 class TenantsServiceTest extends PlaySpec with Results with MockitoSugar with ScalaFutures {
   "The tenants service" should {
     "correcly get all tenants from the database service" in {
-      val databaseService: DatabaseService = mock[DatabaseService]
+      val databaseService: TenantDatabaseService = mock[TenantDatabaseService]
       when(databaseService.all) thenReturn Future.successful(
         Seq(
           DbName.create("test").get,
           DbName.create("sometestdb").get,
           DbName.create("tenant-something-lrcg").get,
-          DbName.create("tenant-data-aoeu").get,
-          DbName.create("tenant-data-snth").get,
+          DbName.create("tenant-data-aoeu-test").get,
+          DbName.create("tenant-data-snth-children").get,
+          DbName.create("tenant-data-snth-days").get,
+          DbName.create("tenant-data-snth-something").get,
           DbName.create("tenant-meta-snth").get
         )
       )

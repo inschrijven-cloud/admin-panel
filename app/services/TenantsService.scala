@@ -28,7 +28,7 @@ object TenantsService {
 }
 
 @Singleton
-class CloudantTenantsService @Inject() (databaseService: DatabaseService) extends TenantsService
+class CloudantTenantsService @Inject() (databaseService: TenantDatabaseService) extends TenantsService
 {
   override def all = {
     databaseService.all map { dbs =>
@@ -37,7 +37,8 @@ class CloudantTenantsService @Inject() (databaseService: DatabaseService) extend
         .filter(name => {
           name.startsWith("tenant-data-") || name.startsWith("tenant-meta-")
         })
-        .map(_.drop("tenant-xxxx-".length))
+        .map(db => if(db.startsWith("tenant-data")) db.split("-").dropRight(1).mkString("-") else db) // data databases
+        .map(_.drop("tenant-xxxx-".length)) // remove prefix
         .map(_.split('.').head)
         .distinct
         .flatMap(Tenant.create)
@@ -45,7 +46,7 @@ class CloudantTenantsService @Inject() (databaseService: DatabaseService) extend
   }
 
   override def create(tenant: Tenant): Future[Ok] = {
-    databaseService.create(tenant.dataDatabaseName) flatMap { ok =>
+    Future.sequence(tenant.dataDatabases.map(databaseService.create)) flatMap { ok =>
       databaseService.create(tenant.metadataDatabaseName)
     }
   }
@@ -53,6 +54,6 @@ class CloudantTenantsService @Inject() (databaseService: DatabaseService) extend
   override def details(tenant: Tenant): Future[Unit] = Future.successful(())
 
   override def initializeDatabase(tenant: Tenant): Future[Seq[Res.DocOk]] = {
-    databaseService.createViews(tenant.dataDatabaseName)
+    Future.successful(Seq())
   }
 }
