@@ -3,9 +3,8 @@ package services
 import javax.inject.{Inject, Singleton}
 
 import be.thomastoye.speelsysteem.ConfigurationException
-import com.ibm.couchdb.Res.DocOk
 import models.DbName
-import play.api.{Configuration, Logger}
+import play.api.Configuration
 import com.ibm.couchdb._
 import play.api.libs.ws.ahc.WSClientProvider
 import play.api.libs.concurrent.Execution.Implicits._
