@@ -8,7 +8,7 @@ import play.api.test._
 
 class StatusControllerTest extends PlaySpec with OneServerPerSuite with Results with FutureAwaits with DefaultAwaitTimeout {
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
-    .configure("cloudant.user" -> "test", "cloudant.host" -> "localhost", "cloudant.port" -> 1111, "cloudant.pass" -> "***")
+    .configure("couchdb.user" -> "test", "couchdb.host" -> "localhost", "couchdb.port" -> 1111, "couchdb.pass" -> "***")
     .build()
 
   "The status controller" should {

@@ -32,7 +32,7 @@ case class CouchDBConfig @Inject()(configuration: Configuration) {
 }
 
 @Singleton
-class CloudantTenantDatabaseService @Inject()(wsClientProvider: WSClientProvider, couchdbConfig: CouchDBConfig)
+class CouchdbTenantDatabaseService @Inject()(wsClientProvider: WSClientProvider, couchdbConfig: CouchDBConfig)
   extends TenantDatabaseService {
 
   val client = (for {

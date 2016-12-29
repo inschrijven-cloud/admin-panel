@@ -28,7 +28,7 @@ object TenantsService {
 }
 
 @Singleton
-class CloudantTenantsService @Inject() (databaseService: TenantDatabaseService) extends TenantsService
+class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) extends TenantsService
 {
   override def all = {
     databaseService.all map { dbs =>

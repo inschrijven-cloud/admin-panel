@@ -1,11 +1,11 @@
 import com.google.inject.AbstractModule
-import services.{CloudantTenantDatabaseService, CloudantTenantsService, TenantDatabaseService, TenantsService}
+import services.{CouchdbTenantDatabaseService, CouchdbTenantsService, TenantDatabaseService, TenantsService}
 
 class Module extends AbstractModule {
 
   override def configure() = {
-    bind(classOf[TenantsService]).to(classOf[CloudantTenantsService])
-    bind(classOf[TenantDatabaseService]).to(classOf[CloudantTenantDatabaseService])
+    bind(classOf[TenantsService]).to(classOf[CouchdbTenantsService])
+    bind(classOf[TenantDatabaseService]).to(classOf[CouchdbTenantDatabaseService])
   }
 
 }
