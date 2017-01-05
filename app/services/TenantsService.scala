@@ -3,24 +3,18 @@ package services
 import javax.inject.{Inject, Singleton}
 
 import be.thomastoye.speelsysteem.models.Tenant
-import com.ibm.couchdb.Res.Ok
+import com.ibm.couchdb.Res.{DocOk, Ok}
 import com.ibm.couchdb._
-import models.DbName
+import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits._
-import services.TenantsService.TenantInfo
-import util.TaskExtensionOps
 
-import scala.concurrent.ExecutionContext.Implicits
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scala.util.{Failure, Success}
-import scala.concurrent.{Future, Promise}
-import scalaz.concurrent.Task
+import scala.concurrent.Future
 
 trait TenantsService {
   def all: Future[Seq[Tenant]]
   def create(tenant: Tenant): Future[Res.Ok]
   def details(tenant: Tenant): Future[Unit] // does nothing yet
-  def initializeDatabase(tenant: Tenant): Future[Seq[Res.DocOk]]
+  def initializeDatabase(tenant: Tenant): Future[Seq[DocOk]]
 }
 
 object TenantsService {
@@ -30,7 +24,7 @@ object TenantsService {
 @Singleton
 class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) extends TenantsService
 {
-  override def all = {
+  override def all: Future[Seq[Tenant]] = {
     databaseService.all map { dbs =>
       dbs
         .map(_.value)
@@ -53,7 +47,41 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
 
   override def details(tenant: Tenant): Future[Unit] = Future.successful(())
 
-  override def initializeDatabase(tenant: Tenant): Future[Seq[Res.DocOk]] = {
-    Future.successful(Seq())
+  override def initializeDatabase(tenant: Tenant): Future[Seq[DocOk]] = {
+    def viewAll(kind: String): CouchView = {
+      CouchView(map =
+        s"""
+           |function(doc) {
+           |  if(doc.kind === '$kind') {
+           |    emit([doc.kind, doc._id], doc._id);
+           |  }
+           |}
+        """.stripMargin)
+    }
+
+    val designDocs: Map[String, Map[String, CouchView]] = Map(
+      "children" -> Map("all" -> viewAll("type/child/v1")),
+      "crew" -> Map("all" -> viewAll("type/crew/v1")),
+      "childattendance" -> Map("all" -> viewAll("type/childattendance/v1")),
+      "days" -> Map("all" -> viewAll("type/day/v1"))
+    )
+
+    case class Revs(childRev: String, crewRev: String)
+
+    Future.sequence(tenant.dataDatabases
+      .flatMap { dbName =>
+        designDocs.find(x => dbName.value.endsWith("-" + x._1)).map(value => (dbName, value._2))
+      }
+      .map { case (dbName, designDoc) =>
+        Logger.info(s"Initializing database ${dbName.value} for tenant ${tenant.normalizedName}")
+
+        val name = dbName.value.split("-").last
+        val exists = databaseService.designDocExists(dbName, name)
+        val design = designDocs.get(dbName.value)
+
+        exists.flatMap { rev =>
+          databaseService.createDesignDoc(dbName, CouchDesign(name, _rev = rev.getOrElse(""), views = designDoc))
+        }
+      })
   }
 }
