@@ -32,11 +32,11 @@ trait TenantDatabaseService {
 }
 
 case class CouchDBConfig @Inject()(configuration: Configuration) {
-  lazy val host = configuration.getString("couchdb.host").getOrElse(throw new ConfigurationException("couchdb.host"))
-  lazy val port = configuration.getInt("couchdb.port").getOrElse(throw new ConfigurationException("couchdb.port"))
-  lazy val https = configuration.getBoolean("couchdb.https").getOrElse(true)
-  lazy val user = configuration.getString("couchdb.user")
-  lazy val pass = configuration.getString("couchdb.pass")
+  lazy val host: String = configuration.getString("couchdb.host").getOrElse(throw new ConfigurationException("couchdb.host"))
+  lazy val port: Int = configuration.getInt("couchdb.port").getOrElse(throw new ConfigurationException("couchdb.port"))
+  lazy val https: Boolean = configuration.getBoolean("couchdb.https").getOrElse(true)
+  lazy val user: Option[String] = configuration.getString("couchdb.user")
+  lazy val pass: Option[String] = configuration.getString("couchdb.pass")
 }
 
 @Singleton
