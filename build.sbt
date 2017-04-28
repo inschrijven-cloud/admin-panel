@@ -6,7 +6,7 @@ lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
 scalaVersion := "2.11.7"
 
-packageName in Docker := "thomastoye/admin-panel"
+dockerRepository := Some("thomastoye")
 
 dockerUpdateLatest := true
 
