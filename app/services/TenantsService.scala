@@ -63,7 +63,8 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
       "children" -> Map("all" -> viewAll("type/child/v1")),
       "crew" -> Map("all" -> viewAll("type/crew/v1")),
       "childattendance" -> Map("all" -> viewAll("type/childattendance/v1")),
-      "days" -> Map("all" -> viewAll("type/day/v1"))
+      "days" -> Map("all" -> viewAll("type/day/v1")),
+      "contactpeople" -> Map("all" -> viewAll("type/contactperson/v1"))
     )
 
     case class Revs(childRev: String, crewRev: String)
