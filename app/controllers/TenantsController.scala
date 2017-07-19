@@ -38,12 +38,12 @@ class TenantsController @Inject()(tenantsService: TenantsService, remoteCouchDB:
     }
   }
 
-  def details(name: String) = Action.async {
+  def details(name: String) = Action.async { implicit req =>
     Tenant.create(name).fold(
       Future.successful(BadRequest(""))
     )(tenant =>
       tenantsService.details(tenant) map { details =>
-        Ok(views.html.tenants.details(tenant, remoteCouchDB, messages))
+        Ok(views.html.tenants.details(tenant, remoteCouchDB, req, messages))
       }
     )
   }
