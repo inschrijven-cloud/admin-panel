@@ -21,6 +21,8 @@ libraryDependencies ++= Seq(
 
   "org.webjars" %% "webjars-play" % "2.6.1",
   "org.webjars" % "bootstrap" % "3.3.6",
+  "org.webjars" % "jquery" % "1.11.3",
+
   "com.adrianhurt" %% "play-bootstrap" % "1.2-P26-B3-RC2",
 
   "org.mockito" % "mockito-core" % "1.10.19",
