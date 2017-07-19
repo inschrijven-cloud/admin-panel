@@ -1,4 +1,5 @@
-@(tenant: be.thomastoye.speelsysteem.models.Tenant)
+@import services.AutoRemoteCouchDBConfig
+@(tenant: be.thomastoye.speelsysteem.models.Tenant, autoRemoteCouchDBConfig: AutoRemoteCouchDBConfig)
 
 @import b3.inline.fieldConstructor
 
@@ -35,4 +36,23 @@
     @b3.form(routes.TenantsController.initializeDatabase(tenant.normalizedName)) {
         @b3.submit('class -> "btn btn-default"){ Initialize databases }
     }
+
+    <h2>Sync to remote</h2>
+
+    <p>
+        Using the following URL to sync to: <code>@autoRemoteCouchDBConfig.uri</code>
+    </p>
+
+    <form method="post" action="@routes.TenantsController.syncTo(tenant.normalizedName)">
+        <button type="submit" class="btn btn-warning">Start replication TO remote</button>
+    </form>
+
+    <h2>Sync from remote</h2>
+
+    <p>Using the following URL to sync from: <code>@autoRemoteCouchDBConfig.uri</code></p>
+
+    <form method="post" action="@routes.TenantsController.syncFrom(tenant.normalizedName)">
+        <button type="submit" class="btn btn-warning">Start replication FROM remote</button>
+    </form>
+
 }

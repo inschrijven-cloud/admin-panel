@@ -8,7 +8,16 @@ import play.api.test._
 
 class StatusControllerTest extends PlaySpec with OneServerPerSuite with Results with FutureAwaits with DefaultAwaitTimeout {
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
-    .configure("couchdb.user" -> "test", "couchdb.host" -> "localhost", "couchdb.port" -> 1111, "couchdb.pass" -> "***")
+    .configure(
+      "couchdb.user" -> "test",
+      "couchdb.host" -> "localhost",
+      "couchdb.port" -> 1111,
+      "couchdb.pass" -> "***",
+      "couchdb.remote.user" -> "test",
+      "couchdb.remote.host" -> "localhost",
+      "couchdb.remote.port" -> 1111,
+      "couchdb.remote.pass" -> "***"
+    )
     .build()
 
   "The status controller" should {

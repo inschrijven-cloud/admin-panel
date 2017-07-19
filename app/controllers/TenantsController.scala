@@ -4,8 +4,7 @@ import javax.inject._
 
 import play.api.Logger
 import be.thomastoye.speelsysteem.models.Tenant
-import com.ibm.couchdb.CouchException
-import services.TenantsService
+import services.{AutoRemoteCouchDBConfig, TenantsService}
 import play.api._
 import play.api.mvc._
 import play.api.data._
@@ -17,7 +16,7 @@ import play.api.libs.concurrent.Execution.Implicits._
 import scala.concurrent.Future
 
 @Singleton
-class TenantsController @Inject()(tenantsService: TenantsService, val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class TenantsController @Inject()(tenantsService: TenantsService, remoteCouchDB: AutoRemoteCouchDBConfig, val messagesApi: MessagesApi) extends Controller with I18nSupport {
   val tenantNormalizedNameConstraint = Constraint[String] { input: String =>
     input match {
       case name if name.matches("""^([a-z]|[0-9]|_|\$|\(|\)|\+|\-|\/)*$""") => Valid
@@ -42,8 +41,20 @@ class TenantsController @Inject()(tenantsService: TenantsService, val messagesAp
       Future.successful(BadRequest(""))
     )(tenant =>
       tenantsService.details(tenant) map { details =>
-        Ok(views.html.tenants.details(tenant))
+        Ok(views.html.tenants.details(tenant, remoteCouchDB))
       }
+    )
+  }
+
+  def syncTo(tenantName: String) = Action.async {
+    Tenant.create(tenantName).fold(Future.successful(BadRequest("")))( tenant =>
+      tenantsService.syncTo(tenant, remoteCouchDB).map(res => Ok(views.html.tenants.replicationresults(tenant, res)))
+    )
+  }
+
+  def syncFrom(tenantName: String) = Action.async {
+    Tenant.create(tenantName).fold(Future.successful(BadRequest("")))( tenant =>
+      tenantsService.syncFrom(tenant, remoteCouchDB).map(res => Ok(views.html.tenants.replicationresults(tenant, res)))
     )
   }
 

@@ -7,6 +7,7 @@ import com.ibm.couchdb.Res.{DocOk, Ok}
 import com.ibm.couchdb._
 import play.api.Logger
 import play.api.libs.concurrent.Execution.Implicits._
+import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
 
@@ -15,6 +16,8 @@ trait TenantsService {
   def create(tenant: Tenant): Future[Res.Ok]
   def details(tenant: Tenant): Future[Unit] // does nothing yet
   def initializeDatabase(tenant: Tenant): Future[Seq[DocOk]]
+  def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]]
+  def syncFrom(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]]
 }
 
 object TenantsService {
@@ -84,5 +87,17 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
           databaseService.createDesignDoc(dbName, CouchDesign(name, _rev = rev.getOrElse(""), views = designDoc))
         }
       })
+  }
+
+  override def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]] = {
+      Future.sequence(tenant.dataDatabases.map { db =>
+        databaseService.startReplicationToRemote(db, remote)
+      })
+    }
+
+  override def syncFrom(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]] = {
+    Future.sequence(tenant.dataDatabases.map { db =>
+      databaseService.startReplicationFromRemote(remote, db)
+    })
   }
 }
