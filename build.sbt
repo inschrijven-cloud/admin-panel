@@ -1,4 +1,4 @@
-name := """admin-panel"""
+name := """speelsysteem-admin-panel"""
 
 version := "1.0-SNAPSHOT"
 
