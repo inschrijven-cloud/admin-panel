@@ -7,7 +7,7 @@ import scala.concurrent.Future
 import org.scalatestplus.play._
 import play.api.mvc._
 import play.api.test._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.mockito.Mockito._
 import org.scalatest.concurrent.ScalaFutures
 import play.api.test.Helpers._

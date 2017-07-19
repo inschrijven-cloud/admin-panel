@@ -2,20 +2,19 @@ package services
 
 import javax.inject.{Inject, Singleton}
 
-import be.thomastoye.speelsysteem.ConfigurationException
 import com.ibm.couchdb.Res.DocOk
 import models.DbName
 import play.api.Configuration
 import com.ibm.couchdb._
-import play.api.libs.ws.ahc.WSClientProvider
-import play.api.libs.concurrent.Execution.Implicits._
 import util.TaskExtensionOps
 import com.netaporter.uri.dsl._
 import com.netaporter.uri.Uri
 import com.typesafe.scalalogging.StrictLogging
 import play.api.libs.json.{Format, JsValue, Json}
+import play.api.libs.ws.WSClient
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait TenantDatabaseService {
   def all: Future[Seq[DbName]]
@@ -59,25 +58,25 @@ trait CouchDBConfig {
 }
 
 case class AutoCouchDBConfig @Inject()(configuration: Configuration) extends CouchDBConfig{
-  lazy val host: String = configuration.getString("couchdb.host").getOrElse(throw new ConfigurationException("couchdb.host"))
-  lazy val port: Int = configuration.getInt("couchdb.port").getOrElse(throw new ConfigurationException("couchdb.port"))
-  lazy val https: Boolean = configuration.getBoolean("couchdb.https").getOrElse(true)
-  lazy val user: Option[String] = configuration.getString("couchdb.user")
-  lazy val pass: Option[String] = configuration.getString("couchdb.pass")
+  lazy val host: String = configuration.get[String]("couchdb.host")
+  lazy val port: Int = configuration.get[Int]("couchdb.port")
+  lazy val https: Boolean = configuration.getOptional[Boolean]("couchdb.https").getOrElse(true)
+  lazy val user: Option[String] = configuration.getOptional[String]("couchdb.user")
+  lazy val pass: Option[String] = configuration.getOptional[String]("couchdb.pass")
 }
 
 case class AutoRemoteCouchDBConfig @Inject()(configuration: Configuration) extends CouchDBConfig{
-  lazy val host: String = configuration.getString("couchdb.remote.host").getOrElse(throw new ConfigurationException("couchdb.remote.host"))
-  lazy val port: Int = configuration.getInt("couchdb.remote.port").getOrElse(throw new ConfigurationException("couchdb.remote.port"))
-  lazy val https: Boolean = configuration.getBoolean("couchdb.remote.https").getOrElse(true)
-  lazy val user: Option[String] = configuration.getString("couchdb.remote.user")
-  lazy val pass: Option[String] = configuration.getString("couchdb.remote.pass")
+  lazy val host: String = configuration.get[String]("couchdb.remote.host")
+  lazy val port: Int = configuration.get[Int]("couchdb.remote.port")
+  lazy val https: Boolean = configuration.getOptional[Boolean]("couchdb.remote.https").getOrElse(true)
+  lazy val user: Option[String] = configuration.getOptional[String]("couchdb.remote.user")
+  lazy val pass: Option[String] = configuration.getOptional[String]("couchdb.remote.pass")
 }
 
 case class ReplicationDocument(source: String, target: String)
 
 @Singleton
-class CouchdbTenantDatabaseService @Inject()(wsClientProvider: WSClientProvider, couchdbConfig: CouchDBConfig)
+class CouchdbTenantDatabaseService @Inject()(wsClient: WSClient, couchdbConfig: CouchDBConfig)
   extends TenantDatabaseService with StrictLogging {
 
   implicit val replicationDocumentForm: Format[ReplicationDocument] = Json.format[ReplicationDocument]
@@ -131,7 +130,7 @@ class CouchdbTenantDatabaseService @Inject()(wsClientProvider: WSClientProvider,
 
     logger.info("Starting replication local --> remote. Replication document to post: " + document)
 
-    wsClientProvider.get().url(couchdbConfig.uri / "_replicate").post(document).map(_.json)
+    wsClient.url(couchdbConfig.uri / "_replicate").post(document).map(_.json)
   }
 
   override def startReplicationFromRemote(db: CouchDBConfig, target: DbName): Future[JsValue] = {
@@ -140,6 +139,6 @@ class CouchdbTenantDatabaseService @Inject()(wsClientProvider: WSClientProvider,
 
     logger.info("Starting replication remote --> local. Replication document to post: " + document)
 
-    wsClientProvider.get().url(couchdbConfig.uri / "_replicate").post(document).map(_.json)
+    wsClient.url(couchdbConfig.uri / "_replicate").post(document).map(_.json)
   }
 }

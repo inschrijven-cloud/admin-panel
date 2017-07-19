@@ -6,10 +6,10 @@ import be.thomastoye.speelsysteem.models.Tenant
 import com.ibm.couchdb.Res.{DocOk, Ok}
 import com.ibm.couchdb._
 import play.api.Logger
-import play.api.libs.concurrent.Execution.Implicits._
 import play.api.libs.json.JsValue
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait TenantsService {
   def all: Future[Seq[Tenant]]

@@ -1,12 +1,13 @@
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play._
-import play.api.Application
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.{Application, Mode}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.WSClient
 import play.api.mvc._
 import play.api.test._
 
-class StatusControllerTest extends PlaySpec with OneServerPerSuite with Results with FutureAwaits with DefaultAwaitTimeout {
+class StatusControllerTest extends PlaySpec with GuiceOneServerPerSuite with Results with FutureAwaits with DefaultAwaitTimeout {
   override implicit lazy val app: Application = new GuiceApplicationBuilder()
     .configure(
       "couchdb.user" -> "test",

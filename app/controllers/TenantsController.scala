@@ -10,13 +10,15 @@ import play.api.mvc._
 import play.api.data._
 import play.api.data.Forms._
 import play.api.data.validation.{Constraint, Invalid, Valid}
-import play.api.i18n.{I18nSupport, MessagesApi}
-import play.api.libs.concurrent.Execution.Implicits._
+import play.api.i18n.I18nSupport
 
 import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
 
 @Singleton
-class TenantsController @Inject()(tenantsService: TenantsService, remoteCouchDB: AutoRemoteCouchDBConfig, val messagesApi: MessagesApi) extends Controller with I18nSupport {
+class TenantsController @Inject()(tenantsService: TenantsService, remoteCouchDB: AutoRemoteCouchDBConfig) extends InjectedController with I18nSupport {
+  implicit lazy val messages = messagesApi.preferred(controllerComponents.langs.availables)
+
   val tenantNormalizedNameConstraint = Constraint[String] { input: String =>
     input match {
       case name if name.matches("""^([a-z]|[0-9]|_|\$|\(|\)|\+|\-|\/)*$""") => Valid
@@ -41,7 +43,7 @@ class TenantsController @Inject()(tenantsService: TenantsService, remoteCouchDB:
       Future.successful(BadRequest(""))
     )(tenant =>
       tenantsService.details(tenant) map { details =>
-        Ok(views.html.tenants.details(tenant, remoteCouchDB))
+        Ok(views.html.tenants.details(tenant, remoteCouchDB, messages))
       }
     )
   }
