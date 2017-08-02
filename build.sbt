@@ -4,7 +4,9 @@ version := "1.0-SNAPSHOT"
 
 lazy val root = (project in file(".")).enablePlugins(PlayScala)
 
-scalaVersion := "2.11.7"
+lazy val playVersion = "2.6.2"
+
+scalaVersion := "2.11.11"
 
 dockerRepository := Some("thomastoye")
 
@@ -15,13 +17,13 @@ libraryDependencies ++= Seq(
   guice,
   "com.ibm" %% "couchdb-scala" % "0.7.2",
   "io.lemonlabs" %% "scala-uri" % "0.4.16",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.1",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.7.2",
 
-  "com.typesafe.play" %% "play-json" % "2.6.1",
+  "com.typesafe.play" %% "play-json" % playVersion,
 
   "org.webjars" %% "webjars-play" % "2.6.1",
-  "org.webjars" % "bootstrap" % "3.3.6",
-  "org.webjars" % "jquery" % "1.11.3",
+  "org.webjars" % "bootstrap" % "3.3.7",
+  "org.webjars" % "jquery" % "3.2.1",
 
   "com.adrianhurt" %% "play-bootstrap" % "1.2-P26-B3-RC2",
 
