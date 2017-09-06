@@ -60,15 +60,15 @@ class TenantsController @Inject()(tenantsService: TenantsService, remoteCouchDB:
     )
   }
 
-  def createNew = Action {
-    Ok(views.html.tenants.createnew(createTenantForm))
+  def createNew = Action { req =>
+    Ok(views.html.tenants.createnew(createTenantForm, req))
   }
 
   def createNewPost = Action.async { implicit req =>
     Logger.debug("entering create new post")
     createTenantForm.bindFromRequest.fold(
       formWithErrors => {
-        Future.successful(BadRequest(views.html.tenants.createnew(formWithErrors)))
+        Future.successful(BadRequest(views.html.tenants.createnew(formWithErrors, req)))
       },
       createTenant => {
         tenantsService.create(createTenant) map { status =>
