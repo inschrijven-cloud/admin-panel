@@ -65,7 +65,7 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
     val designDocs: Map[String, Map[String, CouchView]] = Map(
       "children" -> Map("all" -> viewAll("type/child/v1")),
       "crew" -> Map("all" -> viewAll("type/crew/v1")),
-      "childattendance" -> Map("all" -> viewAll("type/childattendance/v1")),
+      "childattendance" -> Map("all" -> viewAll("type/childattendance/v2")),
       "days" -> Map("all" -> viewAll("type/day/v1")),
       "contactpeople" -> Map("all" -> viewAll("type/contactperson/v1"))
     )
