@@ -1,12 +1,10 @@
 @import play.api.libs.json.JsValue
 @import play.api.libs.json.Json
 
-@(tenant: be.thomastoye.speelsysteem.models.Tenant, results: Seq[JsValue])
+@(tenant: be.thomastoye.speelsysteem.models.Tenant, result: JsValue)
 
 @main(s"Details for ${tenant.normalizedName} replication") {
     <h1>@tenant.normalizedName</h1>
 
-    @for(js <- results) {
-        <pre>@Json.prettyPrint(js)</pre>
-    }
+    <pre>@Json.prettyPrint(result)</pre>
 }

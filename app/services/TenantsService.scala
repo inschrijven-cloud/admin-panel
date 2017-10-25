@@ -16,8 +16,8 @@ trait TenantsService {
   def create(tenant: Tenant): Future[Res.Ok]
   def details(tenant: Tenant): Future[Unit] // does nothing yet
   def initializeDatabase(tenant: Tenant): Future[Seq[DocOk]]
-  def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]]
-  def syncFrom(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]]
+  def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[JsValue]
+  def syncFrom(tenant: Tenant, remote: CouchDBConfig): Future[JsValue]
 }
 
 object TenantsService {
@@ -32,20 +32,15 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
       dbs
         .map(_.value)
         .filter(name => {
-          name.startsWith("tenant-data-") || name.startsWith("tenant-meta-")
+          name.startsWith("ic-")
         })
-        .map(db => if(db.startsWith("tenant-data")) db.split("-").dropRight(1).mkString("-") else db) // data databases
-        .map(_.drop("tenant-xxxx-".length)) // remove prefix
-        .map(_.split('.').head)
-        .distinct
+        .map(_.drop("ic-".length)) // remove prefix
         .flatMap(Tenant.create)
     }
   }
 
   override def create(tenant: Tenant): Future[Ok] = {
-    Future.sequence(tenant.dataDatabases.map(databaseService.create)) flatMap { ok =>
-      databaseService.create(tenant.metadataDatabaseName)
-    }
+    databaseService.create(tenant.databaseName)
   }
 
   override def details(tenant: Tenant): Future[Unit] = Future.successful(())
@@ -62,42 +57,35 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
         """.stripMargin)
     }
 
-    val designDocs: Map[String, Map[String, CouchView]] = Map(
-      "children" -> Map("all" -> viewAll("type/child/v1")),
-      "crew" -> Map("all" -> viewAll("type/crew/v1")),
-      "childattendance" -> Map("all" -> viewAll("type/childattendance/v2")),
-      "days" -> Map("all" -> viewAll("type/day/v1")),
-      "contactpeople" -> Map("all" -> viewAll("type/contactperson/v1"))
+    val designDocs: Map[String, CouchView] = Map(
+      "all-children" -> viewAll("type/child/v1"),
+      "all-crew" -> viewAll("type/crew/v1"),
+      "all-child-attendances" -> viewAll("type/childattendance/v2"),
+      "all-days" -> viewAll("type/day/v1"),
+      "all-contactperson" -> viewAll("type/contactperson/v1")
     )
 
     case class Revs(childRev: String, crewRev: String)
 
-    Future.sequence(tenant.dataDatabases
-      .flatMap { dbName =>
-        designDocs.find(x => dbName.value.endsWith("-" + x._1)).map(value => (dbName, value._2))
-      }
-      .map { case (dbName, designDoc) =>
-        Logger.info(s"Initializing database ${dbName.value} for tenant ${tenant.normalizedName}")
+    Future.sequence(
+      designDocs.map { designDoc =>
+        Logger.info(s"Initializing database ${tenant.databaseName.value} for tenant ${tenant.normalizedName}")
 
-        val name = dbName.value.split("-").last
-        val exists = databaseService.designDocExists(dbName, name)
-        val design = designDocs.get(dbName.value)
+        val name = tenant.databaseName.value.split("-").last
+        val exists = databaseService.designDocExists(tenant.databaseName, name)
+        val design = designDocs.get(tenant.databaseName.value)
 
         exists.flatMap { rev =>
-          databaseService.createDesignDoc(dbName, CouchDesign(name, _rev = rev.getOrElse(""), views = designDoc))
+          databaseService.createDesignDoc(tenant.databaseName, CouchDesign(name, _rev = rev.getOrElse(""), views = Map(designDoc)))
         }
-      })
+      }.toSeq)
   }
 
-  override def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]] = {
-      Future.sequence(tenant.dataDatabases.map { db =>
-        databaseService.startReplicationToRemote(db, remote)
-      })
+  override def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[JsValue] = {
+      databaseService.startReplicationToRemote(tenant.databaseName, remote)
     }
 
-  override def syncFrom(tenant: Tenant, remote: CouchDBConfig): Future[Seq[JsValue]] = {
-    Future.sequence(tenant.dataDatabases.map { db =>
-      databaseService.startReplicationFromRemote(remote, db)
-    })
+  override def syncFrom(tenant: Tenant, remote: CouchDBConfig): Future[JsValue] = {
+    databaseService.startReplicationFromRemote(remote, tenant.databaseName)
   }
 }

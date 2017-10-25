@@ -14,6 +14,7 @@ import org.scalatest.concurrent.ScalaFutures
 import play.api.{Application, Configuration, Mode}
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.test.Helpers._
+import play.api.test.CSRFTokenHelper._
 import play.test.WithApplication
 import services._
 import mockws.MockWS
@@ -60,7 +61,7 @@ class TenantsControllerTest extends PlaySpec with GuiceOneServerPerSuite with Re
     "create a tenant when given a valid normalized tenant name" in {
       val controller = app.injector.instanceOf[TenantsController]
 
-      val resultFut = controller.createNewPost.apply(FakeRequest().withFormUrlEncodedBody("tenantNormalizedName" -> "test-tenant-name"))
+      val resultFut = controller.createNewPost.apply(FakeRequest().withFormUrlEncodedBody("tenantNormalizedName" -> "test-tenant-name").withCSRFToken)
 
       whenReady(resultFut) { res =>
         res.header.status mustBe 303
@@ -74,13 +75,13 @@ class TenantsControllerTest extends PlaySpec with GuiceOneServerPerSuite with Re
       val controller = app.injector.instanceOf[TenantsController]
       reset(tenantsService)
 
-      val resultFut = controller.createNewPost.apply(FakeRequest().withFormUrlEncodedBody("tenantNormalizedName" -> "some-tenant-}{)(*&^%$#@!"))
+      val resultFut = controller.createNewPost.apply(FakeRequest().withFormUrlEncodedBody("tenantNormalizedName" -> "some-tenant-}{)(*&^%$#@!").withCSRFToken)
 
       whenReady(resultFut) { res =>
         res.header.status mustBe 400
         verify(tenantsService, times(0)).create(any[Tenant])
       }
-      
+
       contentAsString(resultFut) must include("""May only contain lowercase letters, numbers, underscores (_), dollar signs ($), parentheses, plus and minus signs, and slashes.""")
       contentAsString(resultFut) must include("""value="some-tenant-}{)(*&amp;^%$#@!"""")
 

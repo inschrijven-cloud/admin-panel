@@ -8,30 +8,9 @@
 @main(s"Details for ${tenant.normalizedName}") {
     <h1>@tenant.normalizedName</h1>
 
-    <h2>Databases</h2>
+    <h2>Database</h2>
 
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Description</th>
-                <th>Name</th>
-            </tr>
-        </thead>
-
-        <tbody>
-            <tr>
-                <td>Metadata database</td>
-                <td><code>@tenant.metadataDatabaseName.value</code></td>
-            </tr>
-
-            @for(db <- tenant.dataDatabases) {
-                <tr>
-                    <td>Data database</td>
-                    <td><code>@db.value</code></td>
-                </tr>
-            }
-        </tbody>
-    </table>
+    Database name: <code>@tenant.databaseName</code>
 
     <h2>Database initialization</h2>
 

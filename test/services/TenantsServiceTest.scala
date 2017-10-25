@@ -20,12 +20,9 @@ class TenantsServiceTest extends PlaySpec with Results with MockitoSugar with Sc
         Seq(
           DbName.create("test").get,
           DbName.create("sometestdb").get,
-          DbName.create("tenant-something-lrcg").get,
-          DbName.create("tenant-data-aoeu-test").get,
-          DbName.create("tenant-data-snth-children").get,
-          DbName.create("tenant-data-snth-days").get,
-          DbName.create("tenant-data-snth-something").get,
-          DbName.create("tenant-meta-snth").get
+          DbName.create("ic-aoeu").get,
+          DbName.create("icsth-test").get,
+          DbName.create("ic-snth").get
         )
       )
 
