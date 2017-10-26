@@ -5,7 +5,7 @@ import models.DbName
 object Tenant {
 
   private case class TenantImpl(normalizedName: String) extends Tenant {
-    override def databaseName: DbName = DbName.create("ic" + normalizedName).get
+    override def databaseName: DbName = DbName.create("ic-" + normalizedName).get
   }
 
   def create(normalizedName: String): Option[Tenant] = {
