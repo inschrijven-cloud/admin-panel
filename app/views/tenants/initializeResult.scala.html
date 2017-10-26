@@ -1,4 +1,4 @@
-@(tenant: be.thomastoye.speelsysteem.models.Tenant, results: Seq[com.ibm.couchdb.Res.DocOk])
+@(tenant: be.thomastoye.speelsysteem.models.Tenant, result: com.ibm.couchdb.Res.DocOk)
 
 @main(s"Initialized database for ${tenant.normalizedName}") {
     <table class="table table-striped">
@@ -6,7 +6,6 @@
             <tr><th>Ok</th><th><code>_id</code></th><th><code>_rev</code></th></tr>
         </thead>
         <tbody>
-        @for(result <- results) {
             <tr>
                 <td>
                     @if(result.ok) {
@@ -18,7 +17,6 @@
                 <td><code>@result.id</code></td>
                 <td><code>@result.rev</code></td>
             </tr>
-        }
         </tbody>
     </table>
 }

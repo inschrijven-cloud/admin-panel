@@ -15,7 +15,7 @@ trait TenantsService {
   def all: Future[Seq[Tenant]]
   def create(tenant: Tenant): Future[Res.Ok]
   def details(tenant: Tenant): Future[Unit] // does nothing yet
-  def initializeDatabase(tenant: Tenant): Future[Seq[DocOk]]
+  def initializeDatabase(tenant: Tenant): Future[DocOk]
   def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[JsValue]
   def syncFrom(tenant: Tenant, remote: CouchDBConfig): Future[JsValue]
 }
@@ -45,7 +45,7 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
 
   override def details(tenant: Tenant): Future[Unit] = Future.successful(())
 
-  override def initializeDatabase(tenant: Tenant): Future[Seq[DocOk]] = {
+  override def initializeDatabase(tenant: Tenant): Future[DocOk] = {
     def viewAll(kind: String): CouchView = {
       CouchView(map =
         s"""
@@ -67,18 +67,15 @@ class CouchdbTenantsService @Inject()(databaseService: TenantDatabaseService) ex
 
     case class Revs(childRev: String, crewRev: String)
 
-    Future.sequence(
-      designDocs.map { designDoc =>
-        Logger.info(s"Initializing database ${tenant.databaseName.value} for tenant ${tenant.normalizedName}")
+    Logger.info(s"Initializing database ${tenant.databaseName.value} for tenant ${tenant.normalizedName} with design doc ")
 
-        val name = tenant.databaseName.value.split("-").last
-        val exists = databaseService.designDocExists(tenant.databaseName, name)
-        val design = designDocs.get(tenant.databaseName.value)
+    val name = "default"
+    val exists = databaseService.designDocExists(tenant.databaseName, name)
+    val design = designDocs.get(tenant.databaseName.value)
 
-        exists.flatMap { rev =>
-          databaseService.createDesignDoc(tenant.databaseName, CouchDesign(name, _rev = rev.getOrElse(""), views = Map(designDoc)))
-        }
-      }.toSeq)
+    exists.flatMap { rev =>
+      databaseService.createDesignDoc(tenant.databaseName, CouchDesign(name, _rev = rev.getOrElse(""), views = designDocs))
+    }
   }
 
   override def syncTo(tenant: Tenant, remote: CouchDBConfig): Future[JsValue] = {
